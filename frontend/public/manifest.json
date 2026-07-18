@@ -1,0 +1,18 @@
+{
+  "name": "EpicMint",
+  "short_name": "EpicMint",
+  "description": "Write, Own, and Earn: The Web3 Marketplace for Stories, Comics, and Poems",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1A202C",
+  "theme_color": "#A37ACC",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["entertainment", "social", "utilities"]
+}

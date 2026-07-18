@@ -1,0 +1,45 @@
+{
+  "name": "epicmint-blockchain",
+  "version": "1.0.0",
+  "description": "Blockchain integration code for EpicMint NFT Marketplace",
+  "main": "index.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy:local": "npx hardhat run scripts/deploy.js --network localhost",
+    "deploy:goerli": "npx hardhat run scripts/deploy.js --network goerli",
+    "deploy:mainnet": "npx hardhat run scripts/deploy.js --network mainnet",
+    "verify": "npx hardhat verify --network goerli",
+    "lint": "solhint 'contracts/**/*.sol'",
+    "coverage": "npx hardhat coverage"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.3",
+    "web3": "^4.2.0",
+    "ethers": "^6.8.0"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.2",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "hardhat": "^2.17.2",
+    "solhint": "^4.0.0",
+    "@typechain/hardhat": "^7.0.0",
+    "typechain": "^8.3.1"
+  },
+  "keywords": [
+    "blockchain",
+    "nft",
+    "marketplace",
+    "web3",
+    "ethereum",
+    "solidity",
+    "ipfs"
+  ],
+  "author": "EpicMint Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/epicmint-blockchain"
+  }
+}
