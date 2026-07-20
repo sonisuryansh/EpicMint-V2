@@ -1,30 +1,22 @@
-# ===========================
 # Dependencies
-# ===========================
 node_modules/
 jspm_packages/
 
-# ===========================
 # Build Files
-# ===========================
 dist/
 build/
 out/
 .next/
 .vite/
 
-# ===========================
 # Environment Variables
-# ===========================
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 
-# ===========================
 # Logs
-# ===========================
 logs/
 *.log
 npm-debug.log*
@@ -32,81 +24,60 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# ===========================
 # Cache
-# ===========================
 .cache/
 .parcel-cache/
 .eslintcache
 .vscode-test/
 
-# ===========================
 # IDE & Editor
-# ===========================
 .vscode/
 .idea/
 *.swp
 *.swo
 *.tmp
 
-# ===========================
 # OS Files
-# ===========================
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# ===========================
 # Coverage
-# ===========================
 coverage/
 .nyc_output/
 
-# ===========================
 # Runtime
-# ===========================
 pids/
 *.pid
 *.seed
 
-# ===========================
 # Package Managers
-# ===========================
 .pnpm-store/
 .yarn/
 .yarn-cache/
 
-# ===========================
 # TypeScript
-# ===========================
 *.tsbuildinfo
 
-# ===========================
 # Miscellaneous
-# ===========================
 *.tgz
 *.zip
 
-# ===========================
 # Local Database
-# ===========================
 *.sqlite
 *.sqlite3
 
-# ===========================
-# MongoDB Data (Local)
-# ===========================
+# MongoDB Data
 data/db/
 
-# ===========================
-# Uploads (Optional)
-# Uncomment if uploads shouldn't be tracked
-# ===========================
-# uploads/
+# Blockchain - Hardhat auto-generated (do not commit)
+blockchain/artifacts/
+blockchain/cache/
 
-# ===========================
+# Uploads - user-uploaded media files
+backend/uploads/
+
 # Secrets
-# ===========================
 *.pem
 *.key
 *.crt
