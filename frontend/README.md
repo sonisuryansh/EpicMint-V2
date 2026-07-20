@@ -1,23 +1,241 @@
-# 🎨 EpicMint - Decentralized NFT Minting and Marketplace Platform
+# Epic Mint Frontend - React + Bootstrap
 
-[![Next.js](https://img.shields.io/badge/Next.js-15.5.3-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18.3.1-blue)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org/)
-[![Firebase](https://img.shields.io/badge/Firebase-11.9.1-orange)](https://firebase.google.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4.1-38B2AC)](https://tailwindcss.com/)
-[![Ethers.js](https://img.shields.io/badge/Ethers.js-6.15.0-purple)](https://docs.ethers.org/)
+A modern React + Bootstrap frontend for the EpicMint NFT marketplace, powered by Vite.
 
-> **"Empowering storytellers through AI and Blockchain"**
+## Features
 
-A Web3 platform and AI-powered decentralized NFT marketplace that bridges creativity and technology. EpicMint allows writers, poets, and artists to create, mint, and trade their works as NFTs by combining blockchain transparency with AI-assisted content creation.
+- **React 18** - Latest React features and performance
+- **Vite** - Ultra-fast build tool and dev server
+- **Bootstrap 5** - Responsive and accessible UI components
+- **React Router v6** - Client-side routing
+- **Axios** - HTTP client for API calls
+- **Firebase** - Authentication and database services (optional)
+- **Web3 Integration** - Blockchain connectivity with ethers.js
 
-🔗 **[Live Demo](https://epicmintminor.vercel.app/)** | 📖 **[Documentation](https://drive.google.com/file/d/15VqS10XftBh_V76ZIK0wzAQ5vPbck7R-/view?usp=drive_link)** | 🎥 **[Video Demo](https://drive.google.com/file/d/1tKpo4AfjI7AAEHRZdJ3w8W0VSWyVuQxE/view?usp=sharing)**
+## Project Structure
 
----
+```
+frontend/
+├── src/
+│   ├── components/        # Reusable UI components
+│   │   ├── Navigation.jsx
+│   │   ├── Footer.jsx
+│   │   ├── Button.jsx
+│   │   ├── Card.jsx
+│   │   ├── Modal.jsx
+│   │   ├── Loading.jsx
+│   │   └── ...
+│   ├── pages/            # Page components
+│   │   ├── Home.jsx
+│   │   ├── Marketplace.jsx
+│   │   └── Create.jsx
+│   ├── hooks/            # Custom React hooks
+│   │   ├── useLocalStorage.js
+│   │   └── useAsync.js
+│   ├── lib/              # Utility libraries
+│   │   └── api.js        # Axios API client
+│   ├── App.jsx           # Main app component
+│   ├── App.css           # App styles
+│   ├── index.css         # Global styles
+│   └── main.jsx          # Entry point
+├── public/               # Static assets
+├── index.html           # HTML entry point
+├── vite.config.js       # Vite configuration
+├── package.json         # Dependencies and scripts
+└── README.md            # This file
+```
 
-## 📊 Project Overview
+## Getting Started
 
-**Institution:** BBD University, Lucknow  
+### Prerequisites
+
+- Node.js >= 16.x
+- npm or yarn
+
+### Installation
+
+1. Install dependencies
+
+```bash
+npm install
+```
+
+2. Create environment file
+
+```bash
+cp .env.example .env
+```
+
+3. Add your configuration to `.env`
+
+```
+VITE_API_URL=http://localhost:5000
+VITE_FIREBASE_API_KEY=your_key_here
+VITE_CONTRACT_ADDRESS=your_contract_here
+```
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The application will open at `http://localhost:3000`
+
+### Building
+
+Build for production:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
+
+## Technologies
+
+- **React** - UI library
+- **Vite** - Build tool
+- **Bootstrap 5** - CSS framework
+- **React Router** - Routing
+- **Axios** - HTTP client
+- **Firebase** - Backend services
+- **Ethers.js** - Web3 interactions
+
+## Styling
+
+The project uses Bootstrap 5 for styling with custom CSS for additional styling needs. All custom CSS is located in component-specific `.css` files.
+
+### Bootstrap Classes Used
+
+- Grid system (container, row, col-*)
+- Typography (display-*, lead, fw-bold, etc.)
+- Components (btn, card, form-control, navbar, etc.)
+- Utilities (mb-*, p-*, d-flex, justify-content-*, etc.)
+
+## Custom Components
+
+### Button
+
+```jsx
+<Button variant="primary" size="lg" fullWidth>
+  Click Me
+</Button>
+```
+
+### Card
+
+```jsx
+<Card title="Card Title">
+  Card content goes here
+</Card>
+```
+
+### Modal
+
+```jsx
+<Modal isOpen={true} onClose={handleClose} title="Modal Title">
+  Modal content here
+</Modal>
+```
+
+## API Integration
+
+The project includes a pre-configured API client using Axios:
+
+```jsx
+import apiClient from '@/lib/api'
+
+// GET request
+const data = await apiClient.get('/endpoint')
+
+// POST request
+await apiClient.post('/endpoint', { key: 'value' })
+
+// PUT request
+await apiClient.put('/endpoint/id', { key: 'value' })
+
+// DELETE request
+await apiClient.delete('/endpoint/id')
+```
+
+## Custom Hooks
+
+### useLocalStorage
+
+Persist state to localStorage:
+
+```jsx
+const [value, setValue] = useLocalStorage('key', 'default')
+```
+
+### useAsync
+
+Handle async operations:
+
+```jsx
+const { status, data, error, execute } = useAsync(asyncFunction)
+```
+
+## Environment Variables
+
+See `.env.example` for all available environment variables. Key variables:
+
+- `VITE_API_URL` - Backend API URL
+- `VITE_FIREBASE_*` - Firebase configuration
+- `VITE_CONTRACT_ADDRESS` - Smart contract address
+- `VITE_PINATA_*` - IPFS/Pinata configuration
+
+## Deployment
+
+### Vercel
+
+```bash
+npm install -g vercel
+vercel
+```
+
+### Netlify
+
+```bash
+npm install -g netlify-cli
+netlify deploy
+```
+
+### Traditional Server
+
+```bash
+npm run build
+# Deploy the 'dist' folder to your server
+```
+
+## Browser Support
+
+- Chrome (latest)
+- Firefox (latest)
+- Safari (latest)
+- Edge (latest)
+
+## License
+
+MIT License - See LICENSE file for details
+
 **Program:** IOTBC-3A | IBM (Minor Project)  
 **Duration:** August 2024 - November 2025  
 **Status:** ✅ Completed & Deployed  

@@ -1,0 +1,10 @@
+export function getDemoNFTs() {
+    return [
+        { _id: '1', title: 'Cosmic Dreamer', description: 'A journey through the cosmos', category: 'art', price: 2.5, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft1/400', creatorAddress: '0x1234567890abcdef1234567890abcdef12345678', creator: { username: 'CosmicArt' }, status: 'listed', likes: 42, views: 120 },
+        { _id: '2', title: 'Digital Samurai', description: 'Honor and pixels collide', category: 'gaming', price: 1.8, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft2/400', creatorAddress: '0x2345678901abcdef2345678901abcdef23456789', creator: { username: 'PixelWarrior' }, status: 'listed', likes: 28, views: 95 },
+        { _id: '3', title: 'Neon Genesis', description: 'Cyberpunk landscape', category: 'art', price: 3.2, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft3/400', creatorAddress: '0x3456789012abcdef3456789012abcdef34567890', creator: { username: 'NeonStudio' }, status: 'minted', likes: 67, views: 210 },
+        { _id: '4', title: 'Abstract Reality', description: 'Colors in motion', category: 'collectibles', price: 0.95, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft4/400', creatorAddress: '0x4567890123abcdef4567890123abcdef45678901', creator: { username: 'AbstractLab' }, status: 'listed', likes: 19, views: 60 },
+        { _id: '5', title: 'Ocean Melody', description: 'Waves frozen in time', category: 'photography', price: 1.5, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft5/400', creatorAddress: '0x5678901234abcdef5678901234abcdef56789012', creator: { username: 'OceanLens' }, status: 'minted', likes: 55, views: 180 },
+        { _id: '6', title: 'Quantum Beast', description: 'A creature from another dimension', category: 'art', price: 4.2, currency: 'ETH', imageUrl: 'https://picsum.photos/seed/nft6/400', creatorAddress: '0x6789012345abcdef6789012345abcdef67890123', creator: { username: 'QuantumArts' }, status: 'listed', likes: 91, views: 340 },
+    ]
+}
