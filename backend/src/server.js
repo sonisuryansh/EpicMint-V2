@@ -1,3 +1,4 @@
+require('dns').setServers(['8.8.8.8', '8.8.4.4']) // bypass ISP DNS which blocks SRV records
 require('dotenv').config()
 const express = require('express')
 const helmet = require('helmet')
