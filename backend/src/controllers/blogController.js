@@ -97,7 +97,7 @@ const createBlog = asyncHandler(async (req, res) => {
         authorAvatar: req.user.avatar || '',
         status: status === 'published' ? 'published' : 'draft',
         readTime: calcReadTime(content),
-        metaDescription: metaDescription || excerpt.slice(0, 160),
+        metaDescription: (metaDescription || excerpt).trim().slice(0, 160),
     })
 
     res.status(201).json({
@@ -130,7 +130,7 @@ const updateBlog = asyncHandler(async (req, res) => {
     if (category !== undefined) blog.category = category
     if (tags !== undefined) blog.tags = Array.isArray(tags) ? tags.map((t) => t.trim().toLowerCase()).filter(Boolean) : []
     if (status !== undefined) blog.status = status
-    if (metaDescription !== undefined) blog.metaDescription = metaDescription
+    if (metaDescription !== undefined) blog.metaDescription = metaDescription.trim().slice(0, 160)
 
     await blog.save()
 

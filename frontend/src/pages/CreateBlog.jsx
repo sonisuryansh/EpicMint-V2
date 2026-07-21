@@ -100,11 +100,11 @@ function CreateBlog() {
     }
 
     const handleAIApply = useCallback((g) => {
-        if (g.title) setTitle(g.title)
-        if (g.excerpt) setExcerpt(g.excerpt)
+        if (g.title) setTitle(g.title.slice(0, 200))
+        if (g.excerpt) setExcerpt(g.excerpt.slice(0, 500))
         if (g.content) setContent(g.content)
-        if (g.tags) setTags(g.tags.join(', '))
-        if (g.metaDescription) setMetaDescription(g.metaDescription)
+        if (g.tags) setTags(Array.isArray(g.tags) ? g.tags.join(', ') : g.tags)
+        if (g.metaDescription) setMetaDescription(g.metaDescription.trim().slice(0, 160))
     }, [])
 
     const handleSubmit = async (status) => {
@@ -115,14 +115,14 @@ function CreateBlog() {
 
         setSaving(true)
         const payload = {
-            title: title.trim(),
-            excerpt: excerpt.trim(),
+            title: title.trim().slice(0, 200),
+            excerpt: excerpt.trim().slice(0, 500),
             content,
             coverImage,
             category,
             tags: tags.split(',').map(t => t.trim().toLowerCase()).filter(Boolean),
             status,
-            metaDescription: metaDescription.trim(),
+            metaDescription: (metaDescription || excerpt).trim().slice(0, 160),
         }
 
         try {

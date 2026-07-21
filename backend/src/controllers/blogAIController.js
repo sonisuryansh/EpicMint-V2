@@ -71,6 +71,9 @@ Do NOT include any commentary outside the JSON object.`
         }
 
         const generated = JSON.parse(jsonMatch[0])
+        if (generated.metaDescription) generated.metaDescription = generated.metaDescription.trim().slice(0, 160)
+        if (generated.excerpt) generated.excerpt = generated.excerpt.trim().slice(0, 500)
+        if (generated.title) generated.title = generated.title.trim().slice(0, 200)
 
         return res.json({
             success: true,
