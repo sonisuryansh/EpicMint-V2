@@ -1,79 +1,78 @@
-# 🎨 EpicMint — NFT Marketplace
+# 🎨 EpicMint — Full-Stack Web3 NFT Marketplace & Blogging Platform
 
 <p align="center">
   <img src="./EpicMint.png" alt="EpicMint Banner" width="100%" />
 </p>
 
-> A full-stack, production-ready NFT marketplace built on Ethereum (Sepolia testnet). Create, mint, buy, and sell NFTs with AI-powered metadata generation, IPFS storage via Pinata, Firebase authentication, and a Node.js/MongoDB backend API.
+> EpicMint V2 is a state-of-the-art, production-grade Web3 application combining an Ethereum ERC-721 NFT marketplace with a full-stack MongoDB-powered blogging platform, Gemini AI generation suite, Pinata IPFS media pinning, Google OAuth, and MetaMask wallet integration.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Overview](#-overview)
+- [Overview & Architecture](#-overview--architecture)
+- [Key Features](#-key-features)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Environment Variables](#-environment-variables)
+- [Environment Configuration](#-environment-configuration)
 - [Getting Started](#-getting-started)
+- [Full Stack Deployment (Vercel & Render)](#-full-stack-deployment-vercel--render)
 - [API Reference](#-api-reference)
 - [Smart Contract](#-smart-contract)
-- [Scripts](#-scripts)
-- [Deployment](#-deployment)
 
 ---
 
-## 🌟 Overview
+## 🌟 Overview & Architecture
 
-EpicMint is a three-tier Web3 application:
+EpicMint operates as a decoupled, multi-tier Web3 platform:
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Frontend** | React 18 + Vite | User interface, wallet connection, NFT browsing |
-| **Backend** | Node.js + Express + MongoDB | REST API, auth, file uploads, AI integration |
-| **Blockchain** | Solidity + Hardhat | ERC-721 smart contract, Sepolia testnet |
+| **Frontend** | React 18 + Vite + React Router DOM v6 | Single Page App (SPA) for marketplace, profile, and blogging |
+| **Backend API** | Node.js + Express + MongoDB Atlas | RESTful API, JWT & Google Auth, file uploads, AI generation |
+| **Blogging Engine** | MongoDB Mongoose + Gemini AI | Full CRUD blogging system with AI content generation & IPFS cover uploads |
+| **Storage** | Pinata IPFS + Sharp Engine | Decentralized asset storage with automated image compression |
+| **Blockchain** | Solidity + Hardhat + ethers.js v6 | ERC-721 smart contract deployed on Sepolia Testnet |
 
-Key features:
-- 🔐 Firebase Google OAuth + JWT authentication
-- 🤖 AI-generated NFT descriptions via Google Gemini
-- 📦 Decentralized media storage on IPFS (Pinata)
-- 🦊 MetaMask wallet integration with ethers.js v6
-- 🛡️ Rate limiting, Helmet security headers, CORS whitelisting
-- 📸 Server-side image processing with Sharp + Multer
+---
+
+## ✨ Key Features
+
+### 📰 Full-Stack Blog Platform (MongoDB + Gemini AI)
+- **MongoDB Powered**: Complete CRUD blog management backed by Mongoose schemas.
+- **✨ Gemini AI Writer**: Auto-generates structured blog posts (Title, Excerpt, Content, Tags, Read Time, Meta Description) using `gemini-3.1-flash-lite`.
+- **🖼️ Pinata IPFS Cover Uploads**: Direct image upload with server-side Sharp image compression for sub-1MB optimization.
+- **🛡️ Granular Authorization**: Server-enforced ownership middleware (`blogOwner`) ensuring only original authors or admins can edit/delete articles.
+- **🔍 Filter & Search**: Real-time debounced keyword search, category filtering, Latest/Popular sorting, and paginated grid layout.
+- **👁️ Views & ❤️ Likes**: Atomic view increments and toggleable user likes.
+
+### 🎨 NFT Marketplace & Blockchain Integration
+- **ERC-721 Smart Contract**: OpenZeppelin standard deployed on Ethereum Sepolia testnet.
+- **MetaMask Integration**: Web3 wallet connection, balance fetching, message signing, and transaction tracking.
+- **🤖 AI-Assisted Minting**: Title, description, tag, and attribute generation via Google Gemini.
+- **📱 Multi-Provider QR Code Sharing**: Shares NFTs via QuickChart, QRServer, and Google Charts fallback engines.
+
+### 🔐 Authentication & Security
+- **Dual Authentication**: Google OAuth 2.0 (`google-auth-library`) & standard Email/Password authentication with JWT.
+- **Protected Routes**: React Router `ProtectedRoute` guards for `/profile`, `/create`, and `/create-blog`.
+- **Security Hardening**: Helmet security headers, CORS origin whitelisting, auth rate-limiting, and error-handling middleware.
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-| Package | Version | Role |
-|---|---|---|
-| React | 18.3 | UI framework |
-| Vite | 5.4 | Dev server & bundler |
-| React Router DOM | 6.28 | Client-side routing |
-| ethers.js | 6.15 | Blockchain/wallet interaction |
-| axios | 1.7 | HTTP client |
-| Bootstrap | 5.3 | Base CSS utilities |
+- **Framework**: React 18.3, Vite 5.4
+- **Routing**: React Router DOM 6.28
+- **Blockchain**: ethers.js 6.15
+- **HTTP Client**: Axios 1.7
 
 ### Backend
-| Package | Version | Role |
-|---|---|---|
-| Express | 4.19 | HTTP server & routing |
-| Mongoose | 8.13 | MongoDB ODM |
-| jsonwebtoken | 9.0 | JWT signing/verification |
-| bcryptjs | 2.4 | Password hashing |
-| google-auth-library | 10.9 | Firebase token verification |
-| @google/generative-ai | 0.24 | Gemini AI integration |
-| multer + sharp | latest | File upload & image processing |
-| Helmet + express-rate-limit | latest | Security hardening |
-
-### Blockchain
-| Package | Version | Role |
-|---|---|---|
-| Hardhat | 2.17 | Smart contract toolchain |
-| @openzeppelin/contracts | 5.0 | ERC-721 base implementation |
-| ethers.js | 6.8 | Contract interaction |
-| solidity-coverage | 0.8 | Test coverage |
+- **Framework**: Express 4.19, Node.js v24
+- **Database**: MongoDB Atlas via Mongoose 8.13
+- **Security**: jsonwebtoken 9.0, helmet, cors, express-rate-limit
+- **AI Integration**: `@google/generative-ai` (`gemini-3.1-flash-lite`)
+- **Media & IPFS**: Multer, Sharp, Pinata SDK
 
 ---
 
@@ -81,404 +80,152 @@ Key features:
 
 ```
 epicmint-main/
-├── frontend/                   # React + Vite SPA
+├── api/                        # Vercel Serverless API entrypoint
+│   └── index.js
+├── backend/                    # Express REST API
 │   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   │   ├── AuthModal.jsx       # Login / Register modal
-│   │   │   ├── Navigation.jsx      # Top nav bar
-│   │   │   ├── NFTCard.jsx         # NFT grid card
-│   │   │   ├── WalletConnect.jsx   # MetaMask connector
-│   │   │   ├── WalletOnboardingModal.jsx
-│   │   │   ├── Toast.jsx           # Notification toasts
-│   │   │   ├── SkeletonCard.jsx    # Loading skeleton
-│   │   │   ├── Modal.jsx           # Generic modal wrapper
-│   │   │   ├── Footer.jsx
-│   │   │   ├── SEO.jsx             # Meta tag injection
-│   │   │   ├── ErrorBoundary.jsx
-│   │   │   └── ScrollToTop.jsx
-│   │   ├── pages/              # Route-level page components
-│   │   │   ├── Home.jsx            # Landing page
-│   │   │   ├── Marketplace.jsx     # NFT browsing & filtering
-│   │   │   ├── Create.jsx          # NFT minting flow
-│   │   │   ├── NFTDetail.jsx       # Individual NFT view
-│   │   │   ├── Profile.jsx         # User profile & portfolio
-│   │   │   ├── Blog.jsx / BlogDetail.jsx
-│   │   │   ├── Documentation.jsx
-│   │   │   ├── FAQ.jsx
-│   │   │   ├── Support.jsx
-│   │   │   ├── PrivacyPolicy.jsx
-│   │   │   ├── TermsOfService.jsx
-│   │   │   └── CookiePolicy.jsx
-│   │   ├── contexts/           # React context providers
-│   │   ├── hooks/              # Custom React hooks
-│   │   ├── lib/                # Utility helpers
-│   │   ├── App.jsx             # Root router & layout
-│   │   └── main.jsx            # Entry point
-│   ├── public/
-│   ├── .env.example
-│   └── vite.config.js
-│
-├── backend/                    # Node.js + Express REST API
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── db.js               # MongoDB connection
-│   │   ├── controllers/        # Route handler logic
-│   │   │   ├── authController.js       # Login, register, Google OAuth
-│   │   │   ├── nftController.js        # CRUD for NFTs
-│   │   │   ├── aiController.js         # Gemini AI metadata generation
-│   │   │   ├── uploadController.js     # Multer + Pinata upload
-│   │   │   ├── commentController.js    # NFT comments
-│   │   │   ├── transactionController.js# On-chain transaction records
-│   │   │   ├── submissionController.js # NFT submission queue
-│   │   │   └── supportController.js    # Support ticket handling
-│   │   ├── middleware/
-│   │   │   ├── auth.js             # JWT verification middleware
-│   │   │   └── errorHandler.js     # Global error + 404 handler
-│   │   ├── models/             # Mongoose schemas
-│   │   │   ├── User.js
-│   │   │   ├── NFT.js
-│   │   │   ├── Comment.js
-│   │   │   ├── Transaction.js
-│   │   │   ├── Submission.js
-│   │   │   └── SupportTicket.js
-│   │   ├── routes/             # Express route definitions
-│   │   │   ├── authRoutes.js
-│   │   │   ├── nftRoutes.js
-│   │   │   ├── uploadRoutes.js
-│   │   │   ├── aiRoutes.js
-│   │   │   ├── commentRoutes.js
-│   │   │   ├── transactionRoutes.js
-│   │   │   ├── submissionRoutes.js
-│   │   │   └── supportRoutes.js
-│   │   ├── firebase.js         # Firebase Admin SDK init
-│   │   └── server.js           # Express app bootstrap
-│   ├── uploads/                # Local file upload storage
-│   ├── .env.example
+│   │   ├── config/             # DB connection (MongoDB Atlas)
+│   │   ├── controllers/        # Auth, Blog, BlogAI, NFT, Comment controllers
+│   │   ├── middleware/         # Auth, BlogOwner, RateLimiter, ErrorHandler
+│   │   ├── models/             # User, Blog, NFT, Comment schemas
+│   │   ├── routes/             # API routes (/api/blogs, /api/auth, etc.)
+│   │   ├── services/           # Pinata IPFS service
+│   │   └── server.js           # Main Express server
+│   ├── .env                    # Backend environment variables
 │   └── package.json
-│
-└── blockchain/                 # Hardhat smart contract workspace
-    ├── contracts/
-    │   └── EpicMintNFT.sol     # ERC-721 NFT contract
-    ├── artifacts/              # Compiled contract ABIs
-    ├── cache/                  # Hardhat build cache
-    ├── examples/               # Interaction scripts
-    ├── ipfs/                   # IPFS upload helpers
-    ├── nft/                    # NFT minting scripts
-    ├── wallet/                 # Wallet utilities
-    ├── web3/                   # Web3 interaction helpers
-    ├── hardhat.config.js
-    └── package.json
+├── frontend/                   # React 18 + Vite SPA
+│   ├── src/
+│   │   ├── components/         # Reusable UI components & Modals
+│   │   │   ├── AIBlogModal.jsx
+│   │   │   ├── BlogOwnerActions.jsx
+│   │   │   ├── BlogSkeleton.jsx
+│   │   │   ├── ConfirmDeleteModal.jsx
+│   │   │   ├── ProtectedRoute.jsx
+│   │   │   ├── QRCode.jsx
+│   │   │   └── Toast.jsx
+│   │   ├── contexts/           # AuthContext & Web3Context
+│   │   ├── lib/                # API client & Web3 helpers
+│   │   ├── pages/              # Route pages (Home, Marketplace, Blog, Create, Profile)
+│   │   └── App.jsx             # React Router configuration
+│   ├── vercel.json             # SPA rewrites config
+│   ├── vite.config.js          # Vite server & proxy configuration
+│   └── .env                    # Frontend environment variables
+├── package.json                # Root package.json for monorepo builds
+└── vercel.json                 # Root Vercel deployment configuration
 ```
 
 ---
 
-## ✅ Prerequisites
+## ⚙️ Environment Configuration
 
-- **Node.js** >= 18.x
-- **npm** >= 9.x
-- **MongoDB** (Atlas cloud URI recommended)
-- **MetaMask** browser extension
-- Accounts / API keys for:
-  - [Firebase](https://console.firebase.google.com/) — Authentication
-  - [Pinata](https://app.pinata.cloud/) — IPFS storage
-  - [Google AI Studio](https://aistudio.google.com/) — Gemini API key
-  - [Infura](https://infura.io/) or Alchemy — Ethereum RPC
-
----
-
-## 🔑 Environment Variables
-
-### Backend — `backend/.env`
-
-Copy `backend/.env.example` and fill in your values:
+### Backend Environment Variables (`backend/.env`)
 
 ```env
-# Server
 PORT=5000
 NODE_ENV=development
-
-# MongoDB
-MONGODB_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/epicmint
-
-# JWT
-JWT_SECRET=your_super_secret_jwt_key
-
-# Pinata (IPFS)
-PINATA_JWT=your_pinata_jwt_token
-PINATA_GATEWAY=https://gateway.pinata.cloud/ipfs
-
-# Blockchain
-RPC_URL=https://sepolia.infura.io/v3/<your_key>
-PRIVATE_KEY=your_deployer_wallet_private_key
-CONTRACT_ADDRESS=0xYourDeployedContractAddress
-CHAIN_ID=11155111
-
-# CORS — frontend origin(s), comma-separated
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3000,http://localhost:3001
+MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/epicmint
+JWT_SECRET=your_jwt_secret_key
+JWT_EXPIRES_IN=7d
+PINATA_API_KEY=your_pinata_api_key
+PINATA_API_SECRET=your_pinata_api_secret
+PINATA_JWT=your_pinata_jwt
+GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
+GEMINI_API_KEY=your_gemini_ai_api_key
 ```
 
-### Frontend — `frontend/.env`
-
-Copy `frontend/.env.example` and fill in your values:
+### Frontend Environment Variables (`frontend/.env`)
 
 ```env
-# Backend API
 VITE_API_URL=http://localhost:5000
-
-# Firebase
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-
-# Web3
 VITE_CHAIN_ID=11155111
-VITE_CONTRACT_ADDRESS=0xYourDeployedContractAddress
-VITE_INFURA_API_KEY=
-
-# IPFS / Pinata
-VITE_PINATA_API_KEY=
-VITE_PINATA_SECRET_KEY=
-VITE_PINATA_GATEWAY_URL=https://gateway.pinata.cloud
-
-# Google Gemini AI
-VITE_GOOGLE_GENAI_API_KEY=
-
-# App
-VITE_APP_URL=http://localhost:5173
-VITE_ENV=development
+VITE_CONTRACT_ADDRESS=0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8
+VITE_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
 ```
 
 ---
 
 ## 🚀 Getting Started
 
-Clone the repository and install dependencies for each workspace independently.
-
-### 1. Install dependencies
+### 1. Clone & Install Dependencies
 
 ```bash
-# Frontend
-cd frontend && npm install
+# Clone the repository
+git clone https://github.com/sonisuryansh/EpicMint-V2.git
+cd EpicMint-V2
 
-# Backend
-cd ../backend && npm install
+# Install backend dependencies
+cd backend
+npm install
 
-# Blockchain (optional — only needed for contract work)
-cd ../blockchain && npm install
+# Install frontend dependencies
+cd ../frontend
+npm install
 ```
 
-### 2. Configure environment files
+### 2. Start Local Development
 
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-# Fill in values as described above
-```
-
-### 3. Start the development servers
-
-Open two terminal windows:
-
-**Terminal 1 — Backend**
+**Start Backend API**:
 ```bash
 cd backend
-npm run dev
-# Listening on http://localhost:5000
-# Health check: http://localhost:5000/health
+npm start
+# Express running on http://localhost:5000
 ```
 
-**Terminal 2 — Frontend**
+**Start Frontend Application**:
 ```bash
 cd frontend
 npm run dev
-# Listening on http://localhost:5173
+# Vite running on http://localhost:3000
 ```
 
 ---
 
-## 📡 API Reference
+## 🌐 Full Stack Deployment (Vercel & Render)
 
-Base URL: `http://localhost:5000`
+### Deployed to Vercel (Frontend & Serverless Functions)
+1. Import `sonisuryansh/EpicMint-V2` repository into Vercel.
+2. Vercel automatically uses the root `package.json` build command (`cd frontend && npm install && npm run build`).
+3. Root `vercel.json` applies SPA rewrites for non-API routes (`/((?!api/).*)` -> `/index.html`) to prevent `404 NOT_FOUND` on page refreshes (`F5`) or direct URL entrances.
 
-All protected routes require the `Authorization: Bearer <jwt_token>` header.
+### Deployed to Render.com (Express Backend API)
+1. Create a Web Service on Render pointing to `backend/`.
+2. Build Command: `npm install`
+3. Start Command: `npm start`
+4. Set Environment Variables in Render Dashboard (`MONGODB_URI`, `JWT_SECRET`, `PINATA_JWT`, `GEMINI_API_KEY`, etc.).
 
-### Auth — `/api/auth`
-> Rate limited: 20 requests / 15 min
+---
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/auth/register` | ❌ | Register with email & password |
-| `POST` | `/api/auth/login` | ❌ | Login with email & password |
-| `POST` | `/api/auth/google` | ❌ | Firebase Google OAuth sign-in |
-| `GET` | `/api/auth/me` | ✅ | Get current authenticated user |
-| `PUT` | `/api/auth/profile` | ✅ | Update user profile |
+## 📑 API Reference
 
-### NFTs — `/api/nfts`
+### Blog Endpoints (`/api/blogs`)
+- `GET /api/blogs` — Public paginated blog list (query params: `page`, `limit`, `category`, `search`, `sort`, `author`)
+- `GET /api/blogs/:slug` — Public blog detail by slug
+- `POST /api/blogs` — Protected. Create new blog draft/published
+- `PUT /api/blogs/:id` — Protected + BlogOwner. Update blog
+- `DELETE /api/blogs/:id` — Protected + BlogOwner. Delete blog
+- `PATCH /api/blogs/:id/view` — Increment view count
+- `PATCH /api/blogs/:id/like` — Toggle article like
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/nfts` | ❌ | List all NFTs (paginated, filterable) |
-| `GET` | `/api/nfts/:id` | ❌ | Get single NFT details |
-| `POST` | `/api/nfts` | ✅ | Create / mint a new NFT |
-| `PUT` | `/api/nfts/:id` | ✅ | Update NFT metadata |
-| `DELETE` | `/api/nfts/:id` | ✅ | Delete an NFT |
+### Blog AI Endpoint (`/api/blog-ai`)
+- `POST /api/blog-ai/generate` — Protected. Generate complete Web3 blog draft via Gemini AI (`topic`, `keywords`, `tone`, `audience`, `length`)
 
-### Uploads — `/api/uploads`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/uploads` | ✅ | Upload image to IPFS via Pinata |
-
-### AI — `/api/ai`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/ai/generate` | ✅ | Generate NFT metadata via Gemini |
-
-### Comments — `/api/comments`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/comments/:nftId` | ❌ | Get comments for an NFT |
-| `POST` | `/api/comments` | ✅ | Post a comment on an NFT |
-
-### Transactions — `/api/transactions`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/transactions` | ✅ | Get user's transaction history |
-| `POST` | `/api/transactions` | ✅ | Record a new on-chain transaction |
-
-### Submissions — `/api/submissions`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/submissions` | ✅ | Submit NFT for review |
-| `GET` | `/api/submissions` | ✅ | Get submission status |
-
-### Support — `/api/support`
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `POST` | `/api/support` | ✅ | Create a support ticket |
-| `GET` | `/api/support` | ✅ | List user's support tickets |
-
-### Health Check
-
-```
-GET /health
-→ { status, database, environment, version, timestamp }
-```
+### Upload Endpoints (`/api/uploads`)
+- `POST /api/uploads/image` — Upload image file to Pinata IPFS (with auto Sharp compression)
+- `POST /api/uploads/metadata` — Upload ERC-721 JSON metadata to Pinata IPFS
 
 ---
 
 ## 📜 Smart Contract
 
-**Contract:** `EpicMintNFT.sol` — ERC-721 NFT on Ethereum Sepolia
-
-| Item | Value |
-|---|---|
-| Standard | ERC-721 (OpenZeppelin v5) |
-| Network | Sepolia Testnet (chainId: 11155111) |
-| Toolchain | Hardhat |
-
-### Compile & Deploy
-
-```bash
-cd blockchain
-
-# Compile Solidity contracts
-npm run compile
-
-# Deploy to local Hardhat network
-npm run deploy:local
-
-# Deploy to Sepolia testnet
-# (Requires RPC_URL and PRIVATE_KEY in environment)
-npx hardhat run nft/deploy.js --network sepolia
-
-# Run contract tests
-npm test
-
-# Generate coverage report
-npm run coverage
-```
-
-After deployment, copy the contract address into both `.env` files:
-- `backend/.env` → `CONTRACT_ADDRESS`
-- `frontend/.env` → `VITE_CONTRACT_ADDRESS`
+- **Contract Address**: `0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8`
+- **Network**: Ethereum Sepolia Testnet (Chain ID `11155111`)
+- **Standard**: ERC-721 URI Storage (OpenZeppelin)
+- **Explorer**: [View on Sepolia Etherscan](https://sepolia.etherscan.io/address/0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8)
 
 ---
 
-## 🧰 Scripts
-
-### Frontend
-```bash
-npm run dev          # Start Vite dev server (port 5173)
-npm run build        # Production build → dist/
-npm run preview      # Preview production build locally
-npm run lint         # ESLint check
-npm run lint:fix     # Auto-fix ESLint errors
-npm run format       # Prettier format all src files
-npm run format:check # Check formatting without writing
-```
-
-### Backend
-```bash
-npm run dev          # Start with nodemon (hot reload)
-npm start            # Start server (production)
-```
-
-### Blockchain
-```bash
-npm run compile      # Compile Solidity contracts
-npm test             # Run Hardhat test suite
-npm run deploy:local # Deploy to local Hardhat network
-npm run coverage     # Solidity test coverage
-npm run lint         # Solhint linting for .sol files
-```
-
----
-
-## 🌐 Deployment
-
-### Frontend — Vercel / Firebase Hosting
-
-```bash
-cd frontend
-npm run build
-# Upload the dist/ directory to your hosting provider
-```
-
-Set all `VITE_*` environment variables in your hosting dashboard before building.
-
-### Backend — Railway / Render / VPS
-
-Set all environment variables on your host and use the start command:
-
-```bash
-node src/server.js
-```
-
-Update `FRONTEND_URL` to your production frontend URL so CORS allows the connection:
-
-```env
-FRONTEND_URL=https://epicmint.vercel.app
-```
-
-### Multi-Origin CORS
-
-The backend supports comma-separated frontend origins:
-
-```env
-FRONTEND_URL=https://epicmint.vercel.app,https://epicmint-staging.vercel.app
-```
-
----
-
-## 📄 License
-
-MIT
+<p align="center">
+  Built with ❤️ for Web3 Creators and Developers.
+</p>
