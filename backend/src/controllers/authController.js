@@ -130,18 +130,7 @@ const walletAuth = asyncHandler(async (req, res) => {
 
     const formattedAddress = walletAddress.toLowerCase()
 
-
-    let user = await User.findOne({ walletAddress: formattedAddress })
-
-    if (!user) {
-
-        user = await User.create({
-            username: `user_${formattedAddress.slice(2, 8)}`,
-            walletAddress: formattedAddress,
-        })
-    }
-
-
+    // ✅ Verify signature FIRST before creating any DB records
     try {
         const recoveredAddress = ethers.verifyMessage(message, signature)
         if (recoveredAddress.toLowerCase() !== formattedAddress) {
@@ -151,6 +140,15 @@ const walletAuth = asyncHandler(async (req, res) => {
         return res.status(401).json({ success: false, message: 'Cryptographic signature verification failed', error: err.message })
     }
 
+    // Only create/fetch user after signature is confirmed valid
+    let user = await User.findOne({ walletAddress: formattedAddress })
+
+    if (!user) {
+        user = await User.create({
+            username: `user_${formattedAddress.slice(2, 8)}`,
+            walletAddress: formattedAddress,
+        })
+    }
 
     user.generateNonce()
     await user.save()

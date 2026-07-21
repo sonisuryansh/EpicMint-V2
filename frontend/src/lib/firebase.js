@@ -5,7 +5,8 @@ import {
 import {
     getAuth,
     connectAuthEmulator,
-    signInWithGoogle,
+    GoogleAuthProvider,
+    signInWithPopup,
     signOut,
     onAuthStateChanged,
 } from 'firebase/auth'
