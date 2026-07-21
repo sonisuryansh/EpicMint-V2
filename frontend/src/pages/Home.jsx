@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { nftAPI, authAPI } from '../lib/api'
+import { nftAPI, authAPI, blogAPI } from '../lib/api'
 import { getDemoNFTs } from '../lib/demoData'
 import NFTCard from '../components/NFTCard'
 import { useWeb3 } from '../contexts/Web3Context'
@@ -331,7 +331,9 @@ function Home() {
     const { user, isAuthenticated } = useAuth()
     const [nfts, setNfts] = useState([])
     const [stats, setStats] = useState(null)
+    const [latestBlogs, setLatestBlogs] = useState([])
     const [loading, setLoading] = useState(true)
+    const [blogsLoading, setBlogsLoading] = useState(true)
     const [error, setError] = useState(null)
     const [selectedTimeframe, setSelectedTimeframe] = useState('1D')
     const [selectedCoin, setSelectedCoin] = useState('ETH')
@@ -367,20 +369,24 @@ function Home() {
 
     const fetchData = async () => {
         setLoading(true)
+        setBlogsLoading(true)
         setError(null)
         try {
-            const [nftsRes, statsRes] = await Promise.all([
+            const [nftsRes, statsRes, blogsRes] = await Promise.all([
                 nftAPI.getAll({ limit: 50, sort: 'newest' }),
                 nftAPI.getStats(),
+                blogAPI.getAll({ limit: 3, sort: 'latest' }).catch(() => ({ data: { data: { blogs: [] } } }))
             ])
             setNfts(nftsRes.data.data || [])
             setStats(statsRes.data.data)
+            setLatestBlogs(blogsRes.data?.data?.blogs || [])
         } catch (err) {
             setError('Backend not connected — showing demo data')
             setNfts(getDemoNFTs())
             setStats({ totalNFTs: 1240, totalMinted: 890, totalListed: 145 })
         } finally {
             setLoading(false)
+            setBlogsLoading(false)
         }
     }
 
@@ -509,8 +515,112 @@ function Home() {
                 </div>
             </section>
 
+            {/* ===== LATEST BLOGS ===== */}
+            <section aria-label="Latest Blogs" style={{ padding: '5rem 0', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)', borderBottom: '1px solid var(--border-color)' }}>
+                <div className="container">
+                    <div className="section-header">
+                        <div className="section-tag">📰 Web3 Insights</div>
+                        <h2 className="display-section gradient-text">Latest Blogs</h2>
+                        <p className="text-secondary" style={{ fontSize: '1.1rem', marginTop: '0.5rem' }}>
+                            Explore articles, tutorials, and Web3 ecosystem guides from our creators
+                        </p>
+                    </div>
+
+                    <div className="grid grid-3" style={{ gap: '2rem', alignItems: 'stretch' }}>
+                        {blogsLoading ? (
+                            Array.from({ length: 3 }).map((_, i) => (
+                                <div key={i} className="card" style={{ padding: '1.25rem', height: 380, background: 'var(--bg-card)' }}>
+                                    <div className="skeleton" style={{ height: 180, borderRadius: 'var(--radius-sm)', marginBottom: '1rem' }} />
+                                    <div className="skeleton mb-2" style={{ height: 24, width: '80%' }} />
+                                    <div className="skeleton mb-2" style={{ height: 16, width: '100%' }} />
+                                    <div className="skeleton mb-2" style={{ height: 16, width: '60%' }} />
+                                </div>
+                            ))
+                        ) : latestBlogs.length === 0 ? (
+                            <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--border-color)' }}>
+                                <p className="text-muted" style={{ margin: 0 }}>No blogs published yet. Be the first to write a Web3 article!</p>
+                                <Link to="/create-blog" className="btn btn-primary btn-sm" style={{ marginTop: '1rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    ✨ Write a Blog
+                                </Link>
+                            </div>
+                        ) : (
+                            latestBlogs.map((blog) => (
+                                <article
+                                    key={blog._id}
+                                    className="card hover-lift"
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        overflow: 'hidden',
+                                        background: 'var(--bg-card)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: 'var(--radius-md)',
+                                        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                                    }}
+                                >
+                                    {/* Cover Image */}
+                                    <div style={{ position: 'relative', width: '100%', height: 190, overflow: 'hidden', background: '#0f0f15' }}>
+                                        <img
+                                            src={blog.coverImage || 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=800&auto=format&fit=crop'}
+                                            alt={blog.title}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                        <div style={{ position: 'absolute', top: '0.75rem', left: '0.75rem', display: 'flex', gap: '0.5rem' }}>
+                                            <span className="badge badge-purple" style={{ textTransform: 'capitalize', fontSize: '0.75rem', fontWeight: 700 }}>
+                                                {blog.category || 'General'}
+                                            </span>
+                                        </div>
+                                        <div style={{ position: 'absolute', bottom: '0.75rem', right: '0.75rem' }}>
+                                            <span style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', padding: '0.25rem 0.6rem', borderRadius: 'var(--radius-sm)', fontSize: '0.7rem', color: '#fff', fontWeight: 600 }}>
+                                                ⏱️ {blog.readTime || '3 min read'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Card Body */}
+                                    <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                                        <div>
+                                            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, lineHeight: 1.4, marginBottom: '0.5rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                <Link to={`/blog/${blog.slug}`} style={{ color: 'var(--text-primary)', textDecoration: 'none' }}>
+                                                    {blog.title}
+                                                </Link>
+                                            </h3>
+                                            <p className="text-secondary" style={{ fontSize: '0.85rem', lineHeight: 1.5, marginBottom: '1rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                                {blog.excerpt || blog.metaDescription}
+                                            </p>
+                                        </div>
+
+                                        {/* Card Footer Info */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '0.75rem', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <div style={{ width: 22, height: 22, borderRadius: '50%', background: 'var(--gradient-brand)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem' }}>
+                                                    {blog.authorAvatar ? <img src={blog.authorAvatar} alt="Author" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : '👤'}
+                                                </div>
+                                                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{blog.authorName || 'EpicMint User'}</span>
+                                            </div>
+                                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                                <span>👁️ {blog.views || 0}</span>
+                                                <span>❤️ {blog.likedBy?.length || 0}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))
+                        )}
+                    </div>
+
+                    {!blogsLoading && latestBlogs.length > 0 && (
+                        <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
+                            <Link to="/blog" className="btn btn-secondary btn-lg">
+                                View All Blogs →
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            </section>
+
             {/* ===== CREATOR ACTIVITY & LIVE NFT STOCK GRAPH SECTION ===== */}
-            <section aria-label="Built for Creators & Market Analytics" style={{ padding: '5rem 0', background: 'var(--bg-secondary)' }}>
+            <section aria-label="Built for Creators & Market Analytics" style={{ padding: '5rem 0', background: 'var(--bg-card)' }}>
                 <div className="container">
                     <div className="section-header">
                         <div className="section-tag">📈 Live Market Analytics &amp; Creators</div>
