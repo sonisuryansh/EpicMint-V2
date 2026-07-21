@@ -767,13 +767,15 @@ textarea.form-control {
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     backdrop-filter: blur(8px);
-    z-index: var(--z-modal);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 1rem;
+    overflow-y: auto;
     animation: fade-in 0.2s ease;
 }
 
@@ -784,6 +786,7 @@ textarea.form-control {
     padding: 2rem;
     max-width: 480px;
     width: 100%;
+    flex-shrink: 0;
     animation: slide-up 0.3s ease;
     box-shadow: var(--shadow-lg);
 }

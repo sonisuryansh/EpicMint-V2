@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import ReactDOM from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useWeb3 } from '../contexts/Web3Context'
 
@@ -91,7 +92,7 @@ function AuthModal({ isOpen, onClose }) {
         }
     }
 
-    return (
+    return ReactDOM.createPortal(
         <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <div className="modal-box" onClick={(e) => e.stopPropagation()} style={{ position: 'relative' }}>
                 {/* Close Button */}
@@ -220,7 +221,8 @@ function AuthModal({ isOpen, onClose }) {
                     <div ref={googleBtnRef} style={{ width: '100%', minHeight: 40 }} />
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }
 
