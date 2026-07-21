@@ -132,11 +132,13 @@ app.use(notFound)
 app.use(errorHandler)
 
 // ============ START SERVER ============
-app.listen(PORT, () => {
-    console.log(`\n🚀 EpicMint Backend v2.0 running on port ${PORT}`)
-    console.log(`📍 Health check: http://localhost:${PORT}/health`)
-    console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`)
-    console.log(`🔗 CORS Origin: ${process.env.FRONTEND_URL || 'http://localhost:3000'}\n`)
-})
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 EpicMint Backend v2.0 running on port ${PORT}`)
+        console.log(`📍 Health check: http://localhost:${PORT}/health`)
+        console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`)
+        console.log(`🔗 CORS Origin: ${process.env.FRONTEND_URL || 'http://localhost:3000'}\n`)
+    })
+}
 
 module.exports = app
