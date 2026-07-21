@@ -31,23 +31,33 @@ app.use(helmet({
 }))
 
 // CORS — restrict to known origins
+// FRONTEND_URL can be comma-separated: "https://a.vercel.app,https://b.vercel.app"
 const allowedOrigins = [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
+    ...(process.env.FRONTEND_URL
+        ? process.env.FRONTEND_URL.split(',').map(u => u.trim().replace(/\/$/, ''))
+        : ['http://localhost:3000']),
     'http://localhost:3001',
     'http://localhost:5173',
 ]
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
         // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true)
-        if (allowedOrigins.includes(origin)) return callback(null, true)
+        // Trim trailing slash from incoming origin before comparing
+        const normalizedOrigin = origin.replace(/\/$/, '')
+        if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true)
+        console.warn(`CORS blocked: ${origin} | Allowed: ${allowedOrigins.join(', ')}`)
         callback(new Error(`CORS: Origin ${origin} not allowed`))
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
-}))
+    optionsSuccessStatus: 200, // Some browsers send OPTIONS preflight
+}
+
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions)) // Handle preflight for all routes
 
 // ============ RATE LIMITING ============
 const globalLimiter = rateLimit({
