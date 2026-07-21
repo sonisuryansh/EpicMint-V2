@@ -6,6 +6,7 @@ const cors = require('cors')
 const morgan = require('morgan')
 const rateLimit = require('express-rate-limit')
 const path = require('path')
+const fs = require('fs')
 
 const connectDB = require('./config/db')
 const { errorHandler, notFound } = require('./middleware/errorHandler')
