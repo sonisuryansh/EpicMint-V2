@@ -78,13 +78,15 @@ const googleAuth = asyncHandler(async (req, res) => {
 
     let payload
     try {
-        const ticket = await googleClient.verifyIdToken({
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+        const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         })
         payload = ticket.getPayload()
     } catch (err) {
-        return res.status(401).json({ success: false, message: 'Invalid Google ID Token', error: err.message })
+        console.error('Google ID Token verification failed:', err.message)
+        return res.status(401).json({ success: false, message: `Invalid Google ID Token: ${err.message}`, error: err.message })
     }
 
     const { sub: googleId, email, name, picture } = payload
@@ -165,13 +167,14 @@ const linkGoogle = asyncHandler(async (req, res) => {
 
     let payload
     try {
-        const ticket = await googleClient.verifyIdToken({
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+        const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         })
         payload = ticket.getPayload()
     } catch (err) {
-        return res.status(401).json({ success: false, message: 'Invalid Google ID Token' })
+        return res.status(401).json({ success: false, message: `Invalid Google ID Token: ${err.message}` })
     }
 
     const { sub: googleId, picture } = payload

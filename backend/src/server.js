@@ -18,6 +18,8 @@ const submissionRoutes = require('./routes/submissionRoutes')
 const aiRoutes = require('./routes/aiRoutes')
 const commentRoutes = require('./routes/commentRoutes')
 const transactionRoutes = require('./routes/transactionRoutes')
+const blogRoutes = require('./routes/blogRoutes')
+const blogAIRoutes = require('./routes/blogAIRoutes')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -110,6 +112,20 @@ app.use('/api/ai', aiRoutes)
 app.use('/api/comments', commentRoutes)
 app.use('/api/transactions', transactionRoutes)
 app.use('/api/support', require('./routes/supportRoutes'))
+app.use('/api/blogs', blogRoutes)
+app.use('/api/blog-ai', blogAIRoutes)
+
+// Serve static frontend build in production if hosted on same Express instance
+if (process.env.NODE_ENV === 'production') {
+    const frontendDist = path.join(__dirname, '../../frontend/dist')
+    if (fs.existsSync(frontendDist)) {
+        app.use(express.static(frontendDist))
+        app.get('*', (req, res, next) => {
+            if (req.path.startsWith('/api')) return next()
+            res.sendFile(path.join(frontendDist, 'index.html'))
+        })
+    }
+}
 
 // ============ ERROR HANDLING ============
 app.use(notFound)

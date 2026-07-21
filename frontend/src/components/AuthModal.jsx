@@ -3,14 +3,18 @@ import ReactDOM from 'react-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { useWeb3 } from '../contexts/Web3Context'
 
-function AuthModal({ isOpen, onClose }) {
+function AuthModal({ isOpen, onClose, initialSignUp = false }) {
     const { login, register, loginWithGoogle, authError } = useAuth()
     const { connect, isConnecting } = useWeb3()
 
-    const [isSignUp, setIsSignUp] = useState(false)
+    const [isSignUp, setIsSignUp] = useState(initialSignUp)
     const [form, setForm] = useState({ username: '', email: '', password: '' })
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        if (isOpen) setIsSignUp(initialSignUp)
+    }, [isOpen, initialSignUp])
 
     const googleBtnRef = useRef(null)
 

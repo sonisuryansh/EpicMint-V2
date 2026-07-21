@@ -116,4 +116,21 @@ export const supportAPI = {
     }),
 }
 
+// ===== BLOG API =====
+export const blogAPI = {
+    getAll: (params = {}) => apiClient.get('/api/blogs', { params }),
+    getBySlug: (slug) => apiClient.get(`/api/blogs/${slug}`),
+    create: (data) => apiClient.post('/api/blogs', data),
+    update: (id, data) => apiClient.put(`/api/blogs/${id}`, data),
+    delete: (id) => apiClient.delete(`/api/blogs/${id}`),
+    toggleLike: (id) => apiClient.patch(`/api/blogs/${id}/like`),
+    incrementView: (id) => apiClient.patch(`/api/blogs/${id}/view`),
+}
+
+// ===== BLOG AI API =====
+export const blogAIAPI = {
+    generate: (data) => apiClient.post('/api/blog-ai/generate', data),
+}
+
 export default apiClient
+

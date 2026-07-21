@@ -400,6 +400,6 @@ export const walletManager = new WalletManager();
 // Extend Window interface for TypeScript
 declare global {
   interface Window {
-    // ethereum?: WalletProvider;
+    ethereum?: WalletProvider;
   }
 }

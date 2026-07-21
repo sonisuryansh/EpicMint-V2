@@ -4,6 +4,7 @@ import { nftAPI, commentsAPI, transactionsAPI } from '../lib/api'
 import { useWeb3 } from '../contexts/Web3Context'
 import { useAuth } from '../contexts/AuthContext'
 import { formatWeb3Error } from '../lib/web3'
+import QRCode from '../components/QRCode'
 
 function NFTDetail() {
     const { id, contractAddress, tokenId } = useParams()
@@ -383,11 +384,7 @@ function NFTDetail() {
 
                                     {/* QR Code and Social Links Side-by-Side */}
                                     <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
-                                        <img
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(window.location.href)}`}
-                                            alt="NFT QR Code"
-                                            style={{ width: 100, height: 100, border: '4px solid white', borderRadius: 'var(--radius-sm)' }}
-                                        />
+                                        <QRCode value={window.location.href} size={100} />
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                                             <a
                                                 href={`https://api.whatsapp.com/send?text=${encodeURIComponent('Check out this awesome NFT on EpicMint: ' + window.location.href)}`}
