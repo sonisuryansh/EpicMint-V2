@@ -1,5 +1,9 @@
 # 🎨 EpicMint — NFT Marketplace
 
+<p align="center">
+  <img src="./EpicMint.png" alt="EpicMint Banner" width="100%" />
+</p>
+
 > A full-stack, production-ready NFT marketplace built on Ethereum (Sepolia testnet). Create, mint, buy, and sell NFTs with AI-powered metadata generation, IPFS storage via Pinata, Firebase authentication, and a Node.js/MongoDB backend API.
 
 ---
