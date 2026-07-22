@@ -23,5 +23,14 @@ export default defineConfig({
     build: {
         outDir: 'dist',
         sourcemap: false,
+        chunkSizeWarningLimit: 1600,
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    vendor: ['react', 'react-dom', 'react-router-dom', 'axios'],
+                    ethers: ['ethers'],
+                },
+            },
+        },
     },
 })
