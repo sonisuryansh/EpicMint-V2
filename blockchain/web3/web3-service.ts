@@ -18,12 +18,14 @@ interface NetworkConfig {
   contracts: ContractAddresses;
 }
 
+const INFURA_KEY = process.env.INFURA_API_KEY || '3b6a67dcf37d437d8f77465c906ae85e';
+
 // Network configurations
 const NETWORKS: Record<number, NetworkConfig> = {
   1: {
     name: 'Ethereum Mainnet',
     chainId: 1,
-    rpcUrl: 'https://mainnet.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrl: `https://mainnet.infura.io/v3/${INFURA_KEY}`,
     blockExplorer: 'https://etherscan.io',
     contracts: {
       nft: '0x...', // Your deployed NFT contract address
@@ -33,7 +35,7 @@ const NETWORKS: Record<number, NetworkConfig> = {
   5: {
     name: 'Goerli Testnet',
     chainId: 5,
-    rpcUrl: 'https://goerli.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrl: `https://goerli.infura.io/v3/${INFURA_KEY}`,
     blockExplorer: 'https://goerli.etherscan.io',
     contracts: {
       nft: '0x...', // Your deployed NFT contract address
@@ -43,7 +45,7 @@ const NETWORKS: Record<number, NetworkConfig> = {
   11155111: {
     name: 'Sepolia Testnet',
     chainId: 11155111,
-    rpcUrl: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
+    rpcUrl: `https://sepolia.infura.io/v3/${INFURA_KEY}`,
     blockExplorer: 'https://sepolia.etherscan.io',
     contracts: {
       nft: '0x...', // Your deployed NFT contract address
@@ -83,7 +85,7 @@ export class Web3Service {
     } else {
       console.warn('MetaMask not detected');
       // Fallback to read-only mode with Infura
-      this.web3 = new Web3('https://mainnet.infura.io/v3/YOUR_INFURA_KEY');
+      this.web3 = new Web3(`https://mainnet.infura.io/v3/${INFURA_KEY}`);
     }
   }
 

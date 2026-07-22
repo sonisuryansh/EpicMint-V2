@@ -179,11 +179,12 @@ export class WalletManager {
       throw new Error('No wallet provider available');
     }
 
+    const infuraKey = process.env.INFURA_API_KEY || '3b6a67dcf37d437d8f77465c906ae85e';
     const networkConfigs: Record<number, any> = {
       1: {
         chainId: '0x1',
         chainName: 'Ethereum Mainnet',
-        rpcUrls: ['https://mainnet.infura.io/v3/YOUR_INFURA_KEY'],
+        rpcUrls: [`https://mainnet.infura.io/v3/${infuraKey}`],
         nativeCurrency: {
           name: 'Ether',
           symbol: 'ETH',
@@ -194,7 +195,7 @@ export class WalletManager {
       5: {
         chainId: '0x5',
         chainName: 'Goerli Testnet',
-        rpcUrls: ['https://goerli.infura.io/v3/YOUR_INFURA_KEY'],
+        rpcUrls: [`https://goerli.infura.io/v3/${infuraKey}`],
         nativeCurrency: {
           name: 'Goerli Ether',
           symbol: 'GoerliETH',

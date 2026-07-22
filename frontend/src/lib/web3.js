@@ -325,7 +325,7 @@ class Web3Service {
                     params: [{
                         chainId: '0xaa36a7',
                         chainName: 'Sepolia Testnet',
-                        rpcUrls: ['https://sepolia.infura.io/v3/'],
+                        rpcUrls: [import.meta.env.VITE_INFURA_API_KEY ? `https://sepolia.infura.io/v3/${import.meta.env.VITE_INFURA_API_KEY}` : 'https://rpc.sepolia.org'],
                         nativeCurrency: { name: 'Sepolia ETH', symbol: 'ETH', decimals: 18 },
                         blockExplorerUrls: ['https://sepolia.etherscan.io'],
                     }],
