@@ -12,6 +12,8 @@ const {
     getMe,
     updateProfile,
     followUser,
+    getFollowers,
+    getFollowing,
 } = require('../controllers/authController')
 const { protect } = require('../middleware/auth')
 
@@ -26,5 +28,7 @@ router.get('/nonce/:walletAddress', getNonce)
 router.get('/me', protect, getMe)
 router.put('/profile', protect, updateProfile)
 router.post('/follow/:target', protect, followUser)
+router.get('/followers', protect, getFollowers)
+router.get('/following', protect, getFollowing)
 
 module.exports = router

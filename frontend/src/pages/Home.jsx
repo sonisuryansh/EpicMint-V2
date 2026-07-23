@@ -328,7 +328,7 @@ const COIN_DATA = {
 function Home() {
     const navigate = useNavigate()
     const { account, isConnected, connect } = useWeb3()
-    const { user, isAuthenticated } = useAuth()
+    const { user, isAuthenticated, updateUser } = useAuth()
     const [nfts, setNfts] = useState([])
     const [stats, setStats] = useState(null)
     const [latestBlogs, setLatestBlogs] = useState([])
@@ -342,9 +342,55 @@ function Home() {
     const activeCoinData = COIN_DATA[selectedCoin] || COIN_DATA.ETH
     const activeTF = activeCoinData.timeframes[selectedTimeframe] || activeCoinData.timeframes['1D']
 
-    const handleToggleFollow = async (targetAddress) => {
-        const isSelf = (account && account.toLowerCase() === targetAddress.toLowerCase()) ||
-            (user && user.walletAddress?.toLowerCase() === targetAddress.toLowerCase())
+    const checkIsFollowing = (creator) => {
+        const targetAddr = creator.walletAddress?.toLowerCase()
+        const targetId = creator.id ? String(creator.id) : null
+
+        if (targetAddr && followingMap[targetAddr] !== undefined) {
+            return followingMap[targetAddr]
+        }
+
+        if (!user) return false
+
+        const userFollowing = (user.following || []).map(item => String(item).toLowerCase())
+        const currentUserId = user._id ? String(user._id).toLowerCase() : null
+        const currentUserWallet = user.walletAddress ? String(user.walletAddress).toLowerCase() : null
+
+        const isInUserFollowing = (targetAddr && userFollowing.includes(targetAddr)) ||
+            (targetId && userFollowing.includes(targetId.toLowerCase()))
+
+        const creatorFollowers = (creator.followers || []).map(item => String(item).toLowerCase())
+        const isInCreatorFollowers = (currentUserId && creatorFollowers.includes(currentUserId)) ||
+            (currentUserWallet && creatorFollowers.includes(currentUserWallet))
+
+        return isInUserFollowing || isInCreatorFollowers
+    }
+
+    const getFollowerCount = (creator) => {
+        const baseCount = Array.isArray(creator.followers) ? creator.followers.length : (creator.followersCount || 0)
+        const currentUserId = user?._id ? String(user._id).toLowerCase() : null
+        const currentUserWallet = user?.walletAddress ? String(user.walletAddress).toLowerCase() : null
+        const creatorFollowers = (creator.followers || []).map(item => String(item).toLowerCase())
+
+        const isAlreadyInDbFollowers = (currentUserId && creatorFollowers.includes(currentUserId)) ||
+            (currentUserWallet && creatorFollowers.includes(currentUserWallet))
+
+        const currentlyFollowing = checkIsFollowing(creator)
+
+        if (currentlyFollowing && !isAlreadyInDbFollowers) {
+            return baseCount + 1
+        } else if (!currentlyFollowing && isAlreadyInDbFollowers) {
+            return Math.max(0, baseCount - 1)
+        }
+        return baseCount
+    }
+
+    const handleToggleFollow = async (targetAddress, targetId = null) => {
+        const targetLower = targetAddress ? targetAddress.toLowerCase() : ''
+        const isSelf = (account && account.toLowerCase() === targetLower) ||
+            (user && user.walletAddress?.toLowerCase() === targetLower) ||
+            (user && targetId && String(user._id) === String(targetId))
+
         if (isSelf) {
             alert('You cannot follow your own account!')
             return
@@ -353,12 +399,21 @@ function Home() {
             alert('Please sign in or connect your wallet to follow creators!')
             return
         }
+
+        const creator = creatorsMap[targetLower] || { walletAddress: targetLower, id: targetId }
+        const currentlyFollowing = checkIsFollowing(creator)
+
+        setFollowingMap(prev => ({ ...prev, [targetLower]: !currentlyFollowing }))
+
         try {
-            const isCurrentlyFollowing = !!followingMap[targetAddress]
-            setFollowingMap(prev => ({ ...prev, [targetAddress]: !isCurrentlyFollowing }))
-            await authAPI.followUser(targetAddress)
+            const targetParam = targetId || targetAddress
+            const res = await authAPI.followUser(targetParam)
+            if (res.data?.user) {
+                updateUser(res.data.user)
+            }
         } catch (err) {
             console.error('Follow toggle error:', err.message)
+            setFollowingMap(prev => ({ ...prev, [targetLower]: currentlyFollowing }))
         }
     }
 
@@ -395,11 +450,15 @@ function Home() {
     nfts.forEach(nft => {
         const addr = (nft.creatorAddress || nft.ownerAddress || '0x0000000000000000000000000000000000000000').toLowerCase()
         if (!creatorsMap[addr]) {
+            const creatorId = nft.creator?._id ? String(nft.creator._id) : null
+            const creatorFollowers = Array.isArray(nft.creator?.followers) ? nft.creator.followers : []
             creatorsMap[addr] = {
                 walletAddress: addr,
+                id: creatorId,
                 username: nft.creator?.username || `User_${addr.slice(2, 8)}`,
                 avatar: nft.creator?.avatar || '',
-                followersCount: nft.creator?.followers?.length || 0,
+                followers: creatorFollowers,
+                followersCount: creatorFollowers.length,
                 nfts: [],
                 totalViews: 0,
                 totalLikes: 0,
@@ -768,7 +827,9 @@ function Home() {
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                             {creatorList.map((creator, idx) => {
                                 const isSelf = (account && account.toLowerCase() === creator.walletAddress.toLowerCase()) ||
-                                    (user && (user.walletAddress?.toLowerCase() === creator.walletAddress.toLowerCase() || user.username === creator.username))
+                                    (user && (user.walletAddress?.toLowerCase() === creator.walletAddress.toLowerCase() || user.username === creator.username || (creator.id && String(user._id) === String(creator.id))))
+                                const isFollowing = checkIsFollowing(creator)
+                                const followerCount = getFollowerCount(creator)
                                 return (
                                     <div
                                         key={creator.walletAddress + idx}
@@ -844,16 +905,16 @@ function Home() {
                                                 <div className="text-xs text-muted" style={{ textAlign: 'right' }}>
                                                     <div>Total Views: <strong style={{ color: '#fff' }}>{creator.totalViews}</strong></div>
                                                     <div>Total Likes: <strong style={{ color: '#fff' }}>{creator.totalLikes}</strong></div>
-                                                    <div>Followers: <strong style={{ color: '#7c3aed' }}>{(creator.followersCount || 0) + (followingMap[creator.walletAddress] ? 1 : 0)}</strong></div>
+                                                    <div>Followers: <strong style={{ color: '#7c3aed' }}>{followerCount}</strong></div>
                                                 </div>
                                                 <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
                                                     {!isSelf ? (
                                                         <button
-                                                            className={`btn btn-sm ${followingMap[creator.walletAddress] ? 'btn-success' : 'btn-primary'}`}
-                                                            onClick={() => handleToggleFollow(creator.walletAddress)}
+                                                            className={`btn btn-sm ${isFollowing ? 'btn-success' : 'btn-primary'}`}
+                                                            onClick={() => handleToggleFollow(creator.walletAddress, creator.id)}
                                                             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                                                         >
-                                                            {followingMap[creator.walletAddress] ? '✓ Following' : '+ Follow'}
+                                                            {isFollowing ? '✓ Following' : '+ Follow'}
                                                         </button>
                                                     ) : (
                                                         <span className="badge badge-info text-xs" style={{ padding: '0.4rem 0.75rem' }}>

@@ -44,14 +44,19 @@ export function AuthProvider({ children }) {
         return () => window.removeEventListener('auth:logout', handle)
     }, [clearAuth])
 
-    // Validate token on mount
+    // Validate token and fetch fresh user profile on mount
     useEffect(() => {
-        if (token && !user) {
+        if (token) {
             authAPI.getMe()
-                .then(res => setUser(res.data.user))
+                .then(res => {
+                    if (res.data?.user) {
+                        setUser(res.data.user)
+                        localStorage.setItem('epicmint_user', JSON.stringify(res.data.user))
+                    }
+                })
                 .catch(() => clearAuth())
         }
-    }, [])
+    }, [token, clearAuth])
 
     /**
      * Login with email + password

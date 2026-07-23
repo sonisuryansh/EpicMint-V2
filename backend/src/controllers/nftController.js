@@ -20,7 +20,18 @@ const getAllNFTs = asyncHandler(async (req, res) => {
 
     if (category) filter.category = category
     if (status) filter.status = status
-    if (creatorAddress) filter.creatorAddress = creatorAddress.toLowerCase()
+    if (creatorAddress) {
+        const mongoose = require('mongoose')
+        const lower = creatorAddress.toLowerCase()
+        const orConditions = [
+            { creatorAddress: lower },
+            { ownerAddress: lower }
+        ]
+        if (mongoose.Types.ObjectId.isValid(creatorAddress)) {
+            orConditions.push({ creator: creatorAddress })
+        }
+        filter.$or = orConditions
+    }
     if (ownerAddress) filter.ownerAddress = ownerAddress.toLowerCase()
 
     if (minPrice || maxPrice) {
@@ -49,7 +60,7 @@ const getAllNFTs = asyncHandler(async (req, res) => {
             .sort(sortBy)
             .skip(skip)
             .limit(parseInt(limit))
-            .populate('creator', 'username avatar walletAddress'),
+            .populate('creator', 'username avatar walletAddress followers following'),
         NFT.countDocuments(filter),
     ])
 
@@ -95,7 +106,7 @@ const getNFTById = asyncHandler(async (req, res) => {
 
     const nft = await NFT.findOne(query).populate(
         'creator',
-        'username avatar walletAddress'
+        'username avatar walletAddress followers following'
     )
 
     if (!nft) {

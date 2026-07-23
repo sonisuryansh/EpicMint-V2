@@ -25,6 +25,7 @@ function Marketplace() {
     const category = searchParams.get('category') || 'all'
     const sort = searchParams.get('sort') || 'newest'
     const page = parseInt(searchParams.get('page') || '1')
+    const creatorAddress = searchParams.get('creatorAddress') || searchParams.get('creator') || ''
 
     const [searchInput, setSearchInput] = useState(search)
 
@@ -39,6 +40,7 @@ function Marketplace() {
             const params = { page, limit: 12, sort }
             if (category && category !== 'all') params.category = category
             if (search) params.search = search
+            if (creatorAddress) params.creatorAddress = creatorAddress
 
             const res = await nftAPI.getAll(params)
             setNfts(res.data.data || [])
@@ -49,12 +51,13 @@ function Marketplace() {
             let demo = getDemoNFTs()
             if (category !== 'all') demo = demo.filter(n => n.category === category)
             if (search) demo = demo.filter(n => n.title.toLowerCase().includes(search.toLowerCase()))
+            if (creatorAddress) demo = demo.filter(n => (n.creatorAddress || '').toLowerCase() === creatorAddress.toLowerCase())
             setNfts(demo)
             setPagination({ total: demo.length, page: 1, pages: 1 })
         } finally {
             setLoading(false)
         }
-    }, [page, sort, category, search])
+    }, [page, sort, category, search, creatorAddress])
 
     useEffect(() => {
         fetchNFTs()
@@ -97,6 +100,22 @@ function Marketplace() {
                         </p>
                     )}
                 </div>
+
+                {/* Active Creator Filter Indicator */}
+                {creatorAddress && (
+                    <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span className="badge badge-info" style={{ padding: '0.4rem 0.85rem', fontSize: '0.825rem', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>🎨 Creator Filter: <strong>{creatorAddress}</strong></span>
+                            <button
+                                type="button"
+                                onClick={() => updateParam('creatorAddress', '')}
+                                style={{ background: 'none', border: 'none', color: '#fff', cursor: 'pointer', fontWeight: 'bold', marginLeft: '0.25rem' }}
+                            >
+                                ✕ Clear Filter
+                            </button>
+                        </span>
+                    </div>
+                )}
 
                 {/* Filter Bar */}
                 <div className="filter-bar">

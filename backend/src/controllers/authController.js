@@ -322,27 +322,45 @@ const followUser = asyncHandler(async (req, res) => {
     })
 
     const targetIdentifier = targetUser ? targetUser._id.toString() : targetLower
+    const targetWallet = targetUser?.walletAddress?.toLowerCase()
     const currentIdentifier = currentUser._id.toString()
 
     // Prevent self-following
-    if (targetIdentifier === currentIdentifier || targetLower === currentUserWallet) {
+    if (
+        targetIdentifier === currentIdentifier ||
+        (currentUserWallet && targetLower === currentUserWallet) ||
+        (targetWallet && currentUserWallet && targetWallet === currentUserWallet)
+    ) {
         return res.status(400).json({ success: false, message: 'You cannot follow yourself' })
     }
 
     if (!currentUser.following) currentUser.following = []
-    const isFollowing = currentUser.following.includes(targetIdentifier) || currentUser.following.includes(targetLower)
+
+    const isFollowing = currentUser.following.some(
+        id => id === targetIdentifier || id === targetLower || (targetWallet && id === targetWallet)
+    )
 
     if (isFollowing) {
-        currentUser.following = currentUser.following.filter(id => id !== targetIdentifier && id !== targetLower)
+        // Unfollow
+        currentUser.following = currentUser.following.filter(
+            id => id !== targetIdentifier && id !== targetLower && (!targetWallet || id !== targetWallet)
+        )
         if (targetUser) {
-            targetUser.followers = (targetUser.followers || []).filter(id => id !== currentIdentifier && id !== currentUserWallet)
+            targetUser.followers = (targetUser.followers || []).filter(
+                id => id !== currentIdentifier && (!currentUserWallet || id !== currentUserWallet)
+            )
             await targetUser.save()
         }
     } else {
-        currentUser.following.push(targetIdentifier)
+        // Follow
+        if (!currentUser.following.includes(targetIdentifier)) currentUser.following.push(targetIdentifier)
+        if (targetWallet && !currentUser.following.includes(targetWallet)) currentUser.following.push(targetWallet)
+        if (!targetWallet && targetLower && !currentUser.following.includes(targetLower)) currentUser.following.push(targetLower)
+
         if (targetUser) {
             if (!targetUser.followers) targetUser.followers = []
-            targetUser.followers.push(currentIdentifier)
+            if (!targetUser.followers.includes(currentIdentifier)) targetUser.followers.push(currentIdentifier)
+            if (currentUserWallet && !targetUser.followers.includes(currentUserWallet)) targetUser.followers.push(currentUserWallet)
             await targetUser.save()
         }
     }
@@ -357,6 +375,116 @@ const followUser = asyncHandler(async (req, res) => {
     })
 })
 
+/**
+ * GET /api/auth/followers
+ * Get populated list of users following the current user
+ */
+const getFollowers = asyncHandler(async (req, res) => {
+    const currentUser = await User.findById(req.user.id)
+    if (!currentUser) {
+        return res.status(404).json({ success: false, message: 'User profile not found' })
+    }
+
+    const mongoose = require('mongoose')
+    const followerIds = (currentUser.followers || []).map(id => String(id).trim())
+    const validObjectIds = []
+    const walletAddresses = []
+
+    followerIds.forEach(id => {
+        if (id.startsWith('0x') || id.length > 30) {
+            walletAddresses.push(id.toLowerCase())
+        } else if (mongoose.Types.ObjectId.isValid(id)) {
+            validObjectIds.push(new mongoose.Types.ObjectId(id))
+            walletAddresses.push(id.toLowerCase())
+        } else {
+            walletAddresses.push(id.toLowerCase())
+        }
+    })
+
+    const queryOr = []
+    if (validObjectIds.length > 0) queryOr.push({ _id: { $in: validObjectIds } })
+    if (walletAddresses.length > 0) queryOr.push({ walletAddress: { $in: walletAddresses } })
+
+    const users = queryOr.length > 0
+        ? await User.find({ $or: queryOr }).select('username avatar walletAddress bio followers following')
+        : []
+
+    const existingWallets = new Set(users.map(u => u.walletAddress?.toLowerCase()).filter(Boolean))
+    const existingIds = new Set(users.map(u => u._id.toString()))
+
+    followerIds.forEach(id => {
+        const lower = id.toLowerCase()
+        if (!existingWallets.has(lower) && !existingIds.has(id)) {
+            users.push({
+                _id: id,
+                username: lower.startsWith('0x') ? `User_${lower.slice(2, 8)}` : `User_${id.slice(0, 6)}`,
+                walletAddress: lower.startsWith('0x') ? lower : '',
+                avatar: '',
+                bio: 'Creator',
+                followers: [],
+                following: []
+            })
+        }
+    })
+
+    res.json({ success: true, followers: users })
+})
+
+/**
+ * GET /api/auth/following
+ * Get populated list of users the current user is following
+ */
+const getFollowing = asyncHandler(async (req, res) => {
+    const currentUser = await User.findById(req.user.id)
+    if (!currentUser) {
+        return res.status(404).json({ success: false, message: 'User profile not found' })
+    }
+
+    const mongoose = require('mongoose')
+    const followingIds = (currentUser.following || []).map(id => String(id).trim())
+    const validObjectIds = []
+    const walletAddresses = []
+
+    followingIds.forEach(id => {
+        if (id.startsWith('0x') || id.length > 30) {
+            walletAddresses.push(id.toLowerCase())
+        } else if (mongoose.Types.ObjectId.isValid(id)) {
+            validObjectIds.push(new mongoose.Types.ObjectId(id))
+            walletAddresses.push(id.toLowerCase())
+        } else {
+            walletAddresses.push(id.toLowerCase())
+        }
+    })
+
+    const queryOr = []
+    if (validObjectIds.length > 0) queryOr.push({ _id: { $in: validObjectIds } })
+    if (walletAddresses.length > 0) queryOr.push({ walletAddress: { $in: walletAddresses } })
+
+    const users = queryOr.length > 0
+        ? await User.find({ $or: queryOr }).select('username avatar walletAddress bio followers following')
+        : []
+
+    const existingWallets = new Set(users.map(u => u.walletAddress?.toLowerCase()).filter(Boolean))
+    const existingIds = new Set(users.map(u => u._id.toString()))
+
+    followingIds.forEach(id => {
+        const lower = id.toLowerCase()
+        if (!existingWallets.has(lower) && !existingIds.has(id)) {
+            users.push({
+                _id: id,
+                username: lower.startsWith('0x') ? `User_${lower.slice(2, 8)}` : `User_${id.slice(0, 6)}`,
+                walletAddress: lower.startsWith('0x') ? lower : '',
+                avatar: '',
+                bio: 'Creator',
+                followers: [],
+                following: []
+            })
+        }
+    })
+
+    res.json({ success: true, following: users })
+})
+
 module.exports = {
     register,
     login,
@@ -369,4 +497,6 @@ module.exports = {
     getMe,
     updateProfile,
     followUser,
+    getFollowers,
+    getFollowing,
 }

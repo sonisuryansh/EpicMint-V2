@@ -9,7 +9,7 @@ import SEO from '../components/SEO'
 
 function Profile() {
     const navigate = useNavigate()
-    const { account, isConnected, connect, getShortAddress, web3Service } = useWeb3()
+    const { account, isConnected, connect, disconnect, getShortAddress, web3Service } = useWeb3()
     const { user, isAuthenticated, linkGoogleAccount, linkWalletAddress, unlinkWalletAddress, logout, updateUser } = useAuth()
 
     const [tab, setTab] = useState('created')
@@ -19,6 +19,11 @@ function Profile() {
     const [username, setUsername] = useState(user?.username || '')
     const [avatar, setAvatar] = useState(user?.avatar || '')
     const [showAuthModal, setShowAuthModal] = useState(false)
+
+    // Social Follower / Following State
+    const [followersList, setFollowersList] = useState([])
+    const [followingList, setFollowingList] = useState([])
+    const [socialLoading, setSocialLoading] = useState(false)
 
     useEffect(() => {
         if (user) {
@@ -129,8 +134,29 @@ function Profile() {
         }
     }
 
+    const fetchSocialLists = async () => {
+        setSocialLoading(true)
+        try {
+            if (tab === 'followers') {
+                const res = await authAPI.getFollowers()
+                setFollowersList(res.data.followers || [])
+            } else if (tab === 'following') {
+                const res = await authAPI.getFollowing()
+                setFollowingList(res.data.following || [])
+            }
+        } catch (err) {
+            console.error('Fetch social lists error:', err)
+        } finally {
+            setSocialLoading(false)
+        }
+    }
+
     useEffect(() => {
-        fetchNFTs()
+        if (tab === 'created' || tab === 'owned') {
+            fetchNFTs()
+        } else if (tab === 'followers' || tab === 'following') {
+            fetchSocialLists()
+        }
     }, [account, user?.walletAddress, tab])
 
     const handleSaveProfile = async () => {
@@ -141,6 +167,28 @@ function Profile() {
         } catch (err) {
             console.error('Profile update failed:', err.message)
         }
+    }
+
+    const handleSocialToggleFollow = async (targetUser) => {
+        const targetParam = targetUser._id || targetUser.walletAddress
+        if (!targetParam) return
+        try {
+            const res = await authAPI.followUser(targetParam)
+            if (res.data?.user) {
+                updateUser(res.data.user)
+            }
+            fetchSocialLists()
+        } catch (err) {
+            console.error('Failed to toggle follow:', err.message)
+        }
+    }
+
+    const isUserFollowed = (targetUser) => {
+        if (!user || !user.following) return false
+        const following = user.following.map(f => String(f).toLowerCase())
+        const targetId = targetUser._id ? String(targetUser._id).toLowerCase() : null
+        const targetWallet = targetUser.walletAddress ? String(targetUser.walletAddress).toLowerCase() : null
+        return (targetId && following.includes(targetId)) || (targetWallet && following.includes(targetWallet))
     }
 
     if (!isAuthenticated && !isConnected) {
@@ -164,6 +212,8 @@ function Profile() {
     const tabs = [
         { id: 'created', label: '🎨 Created' },
         { id: 'owned', label: '💎 Owned' },
+        { id: 'followers', label: `👥 Followers (${user?.followers?.length || 0})` },
+        { id: 'following', label: `👥 Following (${user?.following?.length || 0})` },
     ]
 
     return (
@@ -224,7 +274,7 @@ function Profile() {
                                 </div>
                             )}
 
-                            {/* Addresses/Info */}
+                            {/* Addresses & Social Stat Badges */}
                             <div className="flex flex-col gap-1 mt-2">
                                 {user?.email && (
                                     <div className="text-sm text-secondary">
@@ -244,6 +294,53 @@ function Profile() {
                                         )}
                                     </div>
                                 )}
+
+                                {/* Social Followers & Following Count Buttons */}
+                                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTab('followers')}
+                                        style={{
+                                            cursor: 'pointer',
+                                            background: tab === 'followers' ? 'rgba(124, 58, 237, 0.2)' : 'var(--bg-input)',
+                                            border: tab === 'followers' ? '1px solid #7c3aed' : '1px solid var(--border-color)',
+                                            padding: '0.35rem 0.85rem',
+                                            borderRadius: 'var(--radius-sm)',
+                                            fontSize: '0.825rem',
+                                            color: '#fff',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.4rem',
+                                            transition: 'all 0.2s',
+                                        }}
+                                    >
+                                        <span>👥</span>
+                                        <span>Followers:</span>
+                                        <strong style={{ color: '#7c3aed' }}>{user?.followers?.length || 0}</strong>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setTab('following')}
+                                        style={{
+                                            cursor: 'pointer',
+                                            background: tab === 'following' ? 'rgba(236, 72, 153, 0.2)' : 'var(--bg-input)',
+                                            border: tab === 'following' ? '1px solid #ec4899' : '1px solid var(--border-color)',
+                                            padding: '0.35rem 0.85rem',
+                                            borderRadius: 'var(--radius-sm)',
+                                            fontSize: '0.825rem',
+                                            color: '#fff',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '0.4rem',
+                                            transition: 'all 0.2s',
+                                        }}
+                                    >
+                                        <span>👥</span>
+                                        <span>Following:</span>
+                                        <strong style={{ color: '#ec4899' }}>{user?.following?.length || 0}</strong>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -341,8 +438,8 @@ function Profile() {
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '2rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', padding: '0.375rem', width: 'fit-content' }}>
+                {/* Tabs Navigation */}
+                <div style={{ display: 'flex', gap: '0.25rem', marginBottom: '2rem', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', padding: '0.375rem', width: 'fit-content', flexWrap: 'wrap' }}>
                     {tabs.map(t => (
                         <button
                             key={t.id}
@@ -364,33 +461,158 @@ function Profile() {
                     ))}
                 </div>
 
-                {/* NFT Grid */}
-                {loading ? (
-                    <div className="nft-grid">
-                        {Array.from({ length: 4 }).map((_, i) => <NFTCard key={i} loading />)}
-                    </div>
-                ) : nfts.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">{tab === 'created' ? '🎨' : '💎'}</div>
-                        <div className="empty-state-title">
-                            {tab === 'created' ? 'You haven\'t created any NFTs yet' : 'You don\'t own any NFTs yet'}
+                {/* NFT Grid (for Created / Owned tabs) */}
+                {(tab === 'created' || tab === 'owned') && (
+                    loading ? (
+                        <div className="nft-grid">
+                            {Array.from({ length: 4 }).map((_, i) => <NFTCard key={i} loading />)}
                         </div>
-                        <p className="text-sm text-muted" style={{ marginTop: '0.5rem' }}>
-                            {tab === 'created' ? 'Start by creating your first NFT' : 'Browse the marketplace to buy NFTs'}
-                        </p>
-                        <button
-                            className="btn btn-primary"
-                            style={{ marginTop: '1.5rem' }}
-                            onClick={() => navigate(tab === 'created' ? '/create' : '/marketplace')}
-                        >
-                            {tab === 'created' ? '✨ Create NFT' : '🏪 Browse Marketplace'}
-                        </button>
-                    </div>
-                ) : (
-                    <div className="nft-grid">
-                        {nfts.map(nft => <NFTCard key={nft._id || nft.id} nft={nft} />)}
-                    </div>
+                    ) : nfts.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon">{tab === 'created' ? '🎨' : '💎'}</div>
+                            <div className="empty-state-title">
+                                {tab === 'created' ? 'You haven\'t created any NFTs yet' : 'You don\'t own any NFTs yet'}
+                            </div>
+                            <p className="text-sm text-muted" style={{ marginTop: '0.5rem' }}>
+                                {tab === 'created' ? 'Start by creating your first NFT' : 'Browse the marketplace to buy NFTs'}
+                            </p>
+                            <button
+                                className="btn btn-primary"
+                                style={{ marginTop: '1.5rem' }}
+                                onClick={() => navigate(tab === 'created' ? '/create' : '/marketplace')}
+                            >
+                                {tab === 'created' ? '✨ Create NFT' : '🏪 Browse Marketplace'}
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="nft-grid">
+                            {nfts.map(nft => <NFTCard key={nft._id || nft.id} nft={nft} />)}
+                        </div>
+                    )
                 )}
+
+                {/* Followers & Following Lists */}
+                {(tab === 'followers' || tab === 'following') && (() => {
+                    const rawList = tab === 'followers' ? followersList : followingList
+                    const rawUserArray = tab === 'followers' ? (user?.followers || []) : (user?.following || [])
+
+                    const activeList = rawList.length > 0
+                        ? rawList
+                        : rawUserArray.map(item => {
+                            const str = String(item).trim()
+                            return {
+                                _id: str,
+                                username: str.startsWith('0x') ? `User_${str.slice(2, 8)}` : `User_${str.slice(0, 6)}`,
+                                walletAddress: str.startsWith('0x') ? str.toLowerCase() : '',
+                                avatar: '',
+                                bio: 'Creator',
+                                followers: [],
+                                following: []
+                            }
+                        })
+
+                    if (socialLoading && activeList.length === 0) {
+                        return (
+                            <div className="card" style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                                Loading social network list...
+                            </div>
+                        )
+                    }
+
+                    if (activeList.length === 0) {
+                        return (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">👥</div>
+                                <div className="empty-state-title">
+                                    {tab === 'followers' ? 'No followers yet' : 'You are not following anyone yet'}
+                                </div>
+                                <p className="text-sm text-muted" style={{ marginTop: '0.5rem' }}>
+                                    {tab === 'followers'
+                                        ? 'Share your profile or create NFTs to gain followers'
+                                        : 'Explore active creators on the home page and follow them'}
+                                </p>
+                                <button
+                                    className="btn btn-primary"
+                                    style={{ marginTop: '1.5rem' }}
+                                    onClick={() => navigate('/')}
+                                >
+                                    🔍 Discover Creators
+                                </button>
+                            </div>
+                        )
+                    }
+
+                    return (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                            {activeList.map((u, i) => {
+                                const followingStatus = tab === 'following' ? true : isUserFollowed(u)
+                                const creatorAddr = u.walletAddress || u._id || ''
+                                return (
+                                    <div
+                                        key={u._id || u.walletAddress || i}
+                                        className="card animate-fade-up"
+                                        onClick={() => {
+                                            if (creatorAddr) {
+                                                navigate(`/marketplace?creatorAddress=${creatorAddr}`)
+                                            }
+                                        }}
+                                        style={{
+                                            padding: '1.25rem',
+                                            background: 'var(--bg-input)',
+                                            border: '1px solid var(--border-color)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '1rem',
+                                            cursor: 'pointer',
+                                            transition: 'transform 0.2s, border-color 0.2s',
+                                        }}
+                                    >
+                                        {/* Avatar */}
+                                        <div style={{
+                                            width: 46, height: 46, borderRadius: '50%',
+                                            background: 'var(--gradient-brand)',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: '1.1rem', flexShrink: 0, overflow: 'hidden',
+                                            border: '2px solid rgba(255,255,255,0.15)'
+                                        }}>
+                                            {u.avatar ? (
+                                                <img src={u.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            ) : '👤'}
+                                        </div>
+
+                                        {/* User details */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontWeight: 700, fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                {u.username || 'Creator User'}
+                                            </div>
+                                            {u.walletAddress && (
+                                                <div style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                    {u.walletAddress.slice(0, 6)}...{u.walletAddress.slice(-4)}
+                                                </div>
+                                            )}
+                                            <div className="text-xs text-muted" style={{ marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                                <span>Followers: <strong style={{ color: '#7c3aed' }}>{u.followers?.length || 0}</strong></span>
+                                                <span style={{ color: 'var(--brand-purple-light)', fontSize: '0.7rem' }}>• View Posts →</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Follow action */}
+                                        <button
+                                            className={`btn btn-sm ${followingStatus ? 'btn-success' : 'btn-primary'}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                handleSocialToggleFollow(u)
+                                            }}
+                                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}
+                                        >
+                                            {followingStatus ? '✓ Following' : '+ Follow'}
+                                        </button>
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    )
+                })()}
             </div>
         </div>
     )

@@ -46,6 +46,8 @@ export const authAPI = {
     getMe: () => apiClient.get('/api/auth/me'),
     updateProfile: (data) => apiClient.put('/api/auth/profile', data),
     followUser: (target) => apiClient.post(`/api/auth/follow/${target}`),
+    getFollowers: () => apiClient.get('/api/auth/followers'),
+    getFollowing: () => apiClient.get('/api/auth/following'),
 }
 
 // ===== NFT API =====
